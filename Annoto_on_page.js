@@ -1,30 +1,37 @@
 (function (window) {
-    var allowedChannels = [
-        '112768442',
-        '150610591'
-    ];
-    var x = $('.badge');
+    
+    var tag_obj = $('.badge');
     var tag_found=false;
-    for (var i=0;i<x.length;i++) {
-        tag_name=x[i].innerText;
-        if(tag_name.includes("collaboration"))
-            tag_found=true;    
+
+    for (var i=0;i<tag_obj.length;i++) {
+        tag_name=tag_obj[i].innerText;
+        if(tag_name.includes("collaboration")){
+            tag_found=true;
+            console.log("Annoto On Page (Beta): Found Annoto Tag");
+        }
     }
 
-    var discussionId = location.href; // Or set a 'custom_discussion_id';
-    //var a = 'eyJhbGciOiJIUzI1NiJ9.ZmNkOGNmYWItMzRlZS00MGI1LWI0MDktM2RlZTgwM2NlMDk4.Eg5dDAKT3pKJWelI3JPnpv7xKrWxuZ7Moq6OB8MHTFg';
-    var b = 'https://app.annoto.net/annoto-bootstrap.js';
     window.KApps = window.KApps || {};
     var appParams = window.KApps.annotoAppParams || {};
     var validClienId = !!(appParams.clientId && typeof appParams.clientId === 'string' && appParams.clientId !== '');
+
+    if ((!tag_found) || (!validClienId)) {
+        return;
+    }
+
+    console.log("Annoto On Page (Beta): Loading");
+    var discussionId = location.href; 
+    var b = 'https://app.annoto.net/annoto-bootstrap.js';
 
     var pathMatch = (location.pathname || '').match(/\/(channel|category)\/([^\/]*)\/([^\/,\?]*)/i) || [];
     var groupName = decodeURIComponent(pathMatch[2] || '');
     var groupId = pathMatch[3];
 
-    if ((tag_found) && (!validClienId)) {
-        return;
-    }
+    var uxParams = appParams.ux || {};
+    var siteLoginUrl = window.location.hostname+window.KApps.annotoAppParams.ux.siteLoginUrl;
+    var isLoggedIn = uxParams.isLoggedIn;
+    var guestUsersAllowed = uxParams.guestUsersAllowed;
+
 
     var ssoAuthRequestHandle = function () {
         var getSsoToken = function() {
@@ -35,6 +42,12 @@
             } 
             return Promise.resolve(ctxCred.token);
         }
+
+        if (guestUsersAllowed && !isLoggedIn && siteLoginUrl) {
+            window.location.href = siteLoginUrl;
+            return;
+        }
+
         return getSsoToken().then(function(token) {
             return annotoApi.auth(token);
         });
@@ -44,21 +57,22 @@
     var e = d.body;
     var c = {
         clientId: appParams.clientId,
-        backend = {
+        backend: {
                     domain: appParams.deploymentDomain,
-                };
+                },
         align: {
             horizontal: 'screen_edge',
             vertical: 'bottom'
         },
         ux: {
-            openOnLoad: true,
+            openOnLoad: false,
             ssoAuthRequestHandle: ssoAuthRequestHandle,
         },
         widgets: [{
             player: {
                 type: 'page',
                 element: e,
+                params: { isLive: true },
                 mediaSrc: function() {
                     return discussionId;
                 },
