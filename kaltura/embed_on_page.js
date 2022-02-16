@@ -1,30 +1,18 @@
 (function (window) {
-
-    var tag_obj = $('.badge');
-    var tag_found = false;
-
-    for (var i = 0; i < tag_obj.length; i++) {
-        tag_name = tag_obj[i].innerText;
-        if (tag_name.includes("collaboration")) {
-            tag_found = true;
-            console.log("Annoto On Page (Beta): Found Annoto Tag");
-        }
-    }
+    var matchMedia = (location.pathname || '').match(/\/(media)\/([^\/]*)\/([^\/,\?]*)/i) || [];
+    var mediaFound = matchMedia && matchMedia.length > 2;
 
     window.KApps = window.KApps || {};
     var appParams = window.KApps.annotoAppParams || {};
     var validClienId = !!(appParams.clientId && typeof appParams.clientId === 'string' && appParams.clientId !== '');
 
-    if ((!tag_found) || (!validClienId)) {
+    if (!mediaFound || !validClienId) {
         return;
     }
 
-    console.log("Annoto On Page: Loading");
-    var discussionId = location.href;
+    console.log("Annoto Embed On Page: Loading");
+
     var b = 'https://cdn.annoto.net/widget/latest/bootstrap.js'; // 'http://localhost:9000/bootstrap.js';
-    var groupPathMatch = (location.pathname || '').match(/\/(channel|category)\/([^\/]*)\/([^\/,\?]*)/i) || [];
-    var groupName = decodeURIComponent(groupPathMatch[2] || '');
-    var groupId = groupPathMatch[3];
 
     var uxParams = appParams.ux || {};
     var siteLoginUrl = window.location.hostname + window.KApps.annotoAppParams.ux.siteLoginUrl;
@@ -51,12 +39,25 @@
         });
     }
 
-    var e = document.body;
+    var e = document.createElement('div');
+    e.style.width = '100%';
+    e.style.height = '560px';
+    e.style.borderTop = '1px solid rgba(0,0,0,.1)';
+    e.style.padding = '16px 0';
+    document.getElementById('entryDataBlock').append(e);
 
-    var group = groupId && groupName ? {
-        id: groupId,
-        title: groupName,
-    } : undefined;
+    try {
+        var styleEl = document.createElement('style');
+        document.head.appendChild(styleEl);
+        var styleSheet = styleEl.sheet;
+        styleSheet.insertRule('#bottom_tabs { display: none; }');
+        styleSheet.insertRule('#wrapper { margin-bottom: 0px !important; }');
+        styleSheet.insertRule('.carousel { margin-bottom: 0px !important; }');
+        styleSheet.insertRule('.annoto-progress-bar-organ { display: none !important; }');
+        styleSheet.insertRule('.annoto-timeline { border-bottom: 1px solid rgba(0,0,0,.1); }');
+        styleSheet.insertRule('.annoto-timeline-dock { height: 34px !important; }');
+
+    } catch { }
 
     var c = {
         clientId: appParams.clientId,
@@ -70,16 +71,15 @@
                 if (!retVal.title) {
                     retVal.title = document.title || 'UNKNOWN';
                 }
-                retVal.id = discussionId;
                 return retVal;
             },
         },
-        group: group,
         widgets: [{
             player: {
-                type: 'page',
-                element: e,
+                type: 'kaltura',
+                element: '#kplayer',
             },
+            host: e,
         }],
     };
     var ctxCred;
