@@ -1,6 +1,6 @@
 (function (window) {
     var matchMedia = (location.pathname || '').match(/\/(media)\/([^\/]*)\/([^\/,\?]*)/i) || [];
-    var mediaFound = matchMedia && matchMedia.length > 0;
+    var mediaFound = matchMedia && matchMedia.length > 2;
 
     window.KApps = window.KApps || {};
     var appParams = window.KApps.annotoAppParams || {};
@@ -10,8 +10,9 @@
         return;
     }
 
-    console.log("Annoto On Page media: Loading");
-    var bootstrapUrl = 'https://cdn.annoto.net/widget/latest/bootstrap.js'; // 'http://localhost:9000/bootstrap.js';
+    console.log("Annoto Embed On Page: Loading");
+
+    var b = 'https://cdn.annoto.net/widget/latest/bootstrap.js'; // 'http://localhost:9000/bootstrap.js';
 
     var uxParams = appParams.ux || {};
     var siteLoginUrl = window.location.hostname + window.KApps.annotoAppParams.ux.siteLoginUrl;
@@ -38,50 +39,63 @@
         });
     }
 
-    var el = document.createElement('div');
-    el.classList.add('span9');
-    el.style.width = '65.96%';
-    el.style['margin-left'] = 0;
-    el.innerHTML = `<div class="wrapper" style="height: 560px;">
-                        <div id="demo-media" style="width:100%; height:100%;"></div>
-                    </div>`;
-    var content = document.getElementById('content');
-    content.append(el)
-    var e = document.getElementById('demo-media');
-    
+    var e = document.createElement('div');
+    e.style.width = '100%';
+    e.style.height = '560px';
+    e.style.borderTop = '1px solid rgba(0,0,0,.1)';
+    e.style.padding = '16px 0';
+    document.getElementById('entryDataBlock').append(e);
+
+    try {
+        var styleEl = document.createElement('style');
+        document.head.appendChild(styleEl);
+        var styleSheet = styleEl.sheet;
+        styleSheet.insertRule('#bottom_tabs { display: none; }');
+        styleSheet.insertRule('#wrapper { margin-bottom: 0px !important; }');
+        styleSheet.insertRule('.carousel { margin-bottom: 0px !important; }');
+        styleSheet.insertRule('.annoto-progress-bar-organ { display: none !important; }');
+        styleSheet.insertRule('.annoto-timeline { border-bottom: 1px solid rgba(0,0,0,.1); }');
+        styleSheet.insertRule('.annoto-timeline-dock { height: 34px !important; }');
+
+    } catch { }
+
     var c = {
         clientId: appParams.clientId,
         backend: {
             domain: appParams.deploymentDomain,
         },
+        hooks: {
+            ssoAuthRequestHandle: ssoAuthRequestHandle,
+            mediaDetails: function (detailsParams) {
+                var retVal = detailsParams.details || {};
+                if (!retVal.title) {
+                    retVal.title = document.title || 'UNKNOWN';
+                }
+                return retVal;
+            },
+        },
         widgets: [{
             player: {
-                type: 'page',
-                element: e,
-                params: { isLive: true },
+                type: 'kaltura',
+                element: '#kplayer',
             },
             host: e,
-            ux: {
-                tabs: true,
-                openOnLoad: true,
-                ssoAuthRequestHandle: ssoAuthRequestHandle,
-            },
         }],
     };
     var ctxCred;
     var annotoApi;
     var applyCtxDone = false;
-    var t = document.createElement('script');
-    t.type = 'text/javascript'; t.async = true; t.src = bootstrapUrl;
+    var d = document;
+    var t = d.createElement('script');
+    t.type = 'text/javascript'; t.async = true; t.src = b;
     t.onload = function () {
         Annoto.on('ready', function (api) {
-            console.log('api', api)
             annotoApi = api;
             applyCtxCredentials();
         });
         Annoto.boot(c);
     }
-    var ft = document.getElementsByTagName('script')[0]; ft ? ft.parentNode.insertBefore(t, ft) : document.body.appendChild(t);
+    var ft = d.getElementsByTagName('script')[0]; ft ? ft.parentNode.insertBefore(t, ft) : d.body.appendChild(t);
 
     var applyCtxCredentials = function () {
         if (!validCtx()) {
@@ -116,12 +130,6 @@
         });
     }
 
-    /**
-     *
-     * @param {*} method
-     * @param {*} params { entryid?: string; categoryid?: string; }
-     * @param {*} queryParams
-     */
     var kmsRequest = function (method, params, queryParams) {
         return new Promise(function (resolve, reject) {
             var url = baseUrl + '/annoto/index/' + method;

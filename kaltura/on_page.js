@@ -19,19 +19,17 @@
         return;
     }
 
-    console.log("Annoto On Page (Beta): Loading");
+    console.log("Annoto On Page: Loading");
     var discussionId = location.href;
-    var b = 'https://app.annoto.net/annoto-bootstrap.js';
-
-    var pathMatch = (location.pathname || '').match(/\/(channel|category)\/([^\/]*)\/([^\/,\?]*)/i) || [];
-    var groupName = decodeURIComponent(pathMatch[2] || '');
-    var groupId = pathMatch[3];
+    var b = 'https://cdn.annoto.net/widget/latest/bootstrap.js'; // 'http://localhost:9000/bootstrap.js';
+    var groupPathMatch = (location.pathname || '').match(/\/(channel|category)\/([^\/]*)\/([^\/,\?]*)/i) || [];
+    var groupName = decodeURIComponent(groupPathMatch[2] || '');
+    var groupId = groupPathMatch[3];
 
     var uxParams = appParams.ux || {};
     var siteLoginUrl = window.location.hostname + window.KApps.annotoAppParams.ux.siteLoginUrl;
     var isLoggedIn = uxParams.isLoggedIn;
     var guestUsersAllowed = uxParams.guestUsersAllowed;
-
 
     var ssoAuthRequestHandle = function () {
         var getSsoToken = function () {
@@ -53,49 +51,41 @@
         });
     }
 
-    var d = document;
-    var e = d.body;
+    var e = document.body;
+
+    var group = groupId && groupName ? {
+        id: groupId,
+        title: groupName,
+    } : undefined;
+
     var c = {
         clientId: appParams.clientId,
         backend: {
             domain: appParams.deploymentDomain,
         },
-        align: {
-            horizontal: 'screen_edge',
-            vertical: 'bottom'
-        },
-        ux: {
-            openOnLoad: false,
+        hooks: {
             ssoAuthRequestHandle: ssoAuthRequestHandle,
+            mediaDetails: function (detailsParams) {
+                var retVal = detailsParams.details || {};
+                if (!retVal.title) {
+                    retVal.title = document.title || 'UNKNOWN';
+                }
+                retVal.id = discussionId;
+                return retVal;
+            },
         },
+        group: group,
         widgets: [{
             player: {
                 type: 'page',
                 element: e,
-                params: { isLive: true },
-                mediaSrc: function () {
-                    return discussionId;
-                },
-                mediaDetails: function (details) {
-                    var retVal = details || {};
-                    if (!retVal.title) {
-                        retVal.title = document.title || 'UNKNOWN';
-                    }
-                    if (groupId && groupName) {
-                        retVal.group = {
-                            id: groupId,
-                            title: groupName,
-                            privateThread: true,
-                        };
-                    }
-                    return retVal;
-                }
-            }
+            },
         }],
     };
     var ctxCred;
     var annotoApi;
     var applyCtxDone = false;
+    var d = document;
     var t = d.createElement('script');
     t.type = 'text/javascript'; t.async = true; t.src = b;
     t.onload = function () {
@@ -140,12 +130,6 @@
         });
     }
 
-    /**
-     * 
-     * @param {*} method 
-     * @param {*} params { entryid?: string; categoryid?: string; }
-     * @param {*} queryParams 
-     */
     var kmsRequest = function (method, params, queryParams) {
         return new Promise(function (resolve, reject) {
             var url = baseUrl + '/annoto/index/' + method;
