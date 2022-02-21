@@ -60,6 +60,7 @@
         Annoto.boot(widgetConfig);
     };
 
+    var activeVimeoPlayerId;
     var setupVimeoPlayersForAnnoto = function () {
         console.log("Annoto Yedion: setup vimeo players");
         $("iframe").each(function (k, vimeoWrapper) {
@@ -69,6 +70,10 @@
                 var vimeoPlayer = new Vimeo.Player(vimeoWrapper);
 
                 vimeoPlayer.on('play', function () {
+                    if (playerId === activeVimeoPlayerId) {
+                        return;
+                    }
+                    activeVimeoPlayerId = playerId;
                     console.log('Annoto Yedion: play: ' + playerId);
                     setupAnnotoWidget(playerId, vimeoPlayer);
                 });
