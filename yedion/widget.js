@@ -75,6 +75,12 @@
                     }
                     activeVimeoPlayerId = playerId;
                     console.log('Annoto Yedion: play: ' + playerId);
+                    if ($('#course_blockhomer').hasClass('sview')) {
+                        changeView();
+                        $([document.documentElement, document.body]).animate({
+                            scrollTop: $('#' + playerId).offset().top - 80
+                        }, 1000);
+                    }
                     setupAnnotoWidget(playerId, vimeoPlayer);
                 });
             }
