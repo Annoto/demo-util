@@ -16,7 +16,7 @@
     }
 
 
-    var setupAnnotoWidget = function (playerId, player) {
+    var setupAnnotoWidget = function (playerId) {
         var widgetConfig = {
             clientId: AnnotoData.clientId,
             widgets: [{
@@ -29,27 +29,13 @@
             group: {
                 id: AnnotoData.group.id,
                 title: AnnotoData.group.title,
-                description: window.AnnotoData.group.description,
-            },
-            hooks: {
-                mediaDetails: function () {
-                    return player.getVideoTitle().then(function (title) {
-                        return {
-                            title: title,
-                        }
-                    });
-                }
+                description: AnnotoData.group.description,
             },
         };
         console.log("Annoto Yedion load widget with player id: " + playerId);
 
         if (window.Annoto.api) {
-            return Annoto.api.load(widgetConfig, function (err) {
-                if (err) {
-                    console.error('Annoto Yedion: Error while reloading Annoto configuration');
-                    return;
-                }
-            });
+            return Annoto.api.load(widgetConfig);
         }
 
 
@@ -81,7 +67,7 @@
                             scrollTop: $('#' + playerId).offset().top - 80
                         }, 1000);
                     }
-                    setupAnnotoWidget(playerId, vimeoPlayer);
+                    setupAnnotoWidget(playerId);
                 });
             }
         });
