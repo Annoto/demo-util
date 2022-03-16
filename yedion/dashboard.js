@@ -29,24 +29,6 @@
             navEl.innerHTML = `<i class="fa color-green fa-chart-bar"></i><a href="#" role="button" class="InnerMenuColor">לוח מחוונים</a><span class="flag_ph"></span>`;
             sidebarNav2.appendChild(navEl);
 
-            var courseRootEl = document.createElement(`nnd-course-root`);
-            courseRootEl.style.display = 'none';
-            courseRootEl.responsive = false;
-            courseRootEl.historyType = 'compose';
-            courseRootEl.composeHistory = true;
-            courseRootEl.clientId = AnnotoData.clientId;
-            courseRootEl.courseDetails = {
-                id: AnnotoData.group.id,
-                title: AnnotoData.group.title,
-                privateThread: true,
-            };
-            courseRootEl.addEventListener('nndReady', function () {
-                console.log('Annoto Yedion: dashboard ready');
-                courseRootEl.authenticateSSO(AnnotoData.userToken);
-            });
-
-            var dashboardContainer = $('.table-responsive div.col-md-10').not('.table-responsive .course_block div.col-md-10');
-            dashboardContainer.prepend(courseRootEl);
             $('#sidebar-nav-2 li.menu_item').not(navEl).on('click', function (ev) {
                 $('nnd-course-root').css({
                     display: 'none'
@@ -64,6 +46,28 @@
                 $('.table-responsive div.col-md-10 .course_block').css({
                     display: 'none',
                 });
+
+                if (!$('nnd-course-root').get(0)) {
+                    var courseRootEl = document.createElement(`nnd-course-root`);
+                    courseRootEl.style.display = 'none';
+                    courseRootEl.responsive = false;
+                    courseRootEl.historyType = 'compose';
+                    courseRootEl.composeHistory = true;
+                    courseRootEl.clientId = AnnotoData.clientId;
+                    courseRootEl.courseDetails = {
+                        id: AnnotoData.group.id,
+                        title: AnnotoData.group.title,
+                        privateThread: true,
+                    };
+                    courseRootEl.addEventListener('nndReady', function () {
+                        console.log('Annoto Yedion: dashboard ready');
+                        courseRootEl.authenticateSSO(AnnotoData.userToken);
+                    });
+
+                    var dashboardContainer = $('.table-responsive div.col-md-10').not('.table-responsive .course_block div.col-md-10');
+                    dashboardContainer.prepend(courseRootEl);
+                }
+
                 $('nnd-course-root').css({
                     display: 'block'
                 });
