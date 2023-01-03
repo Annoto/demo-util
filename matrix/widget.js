@@ -33,6 +33,10 @@
     }
 
     var onWindowLoad = function () {
+        var playerEl = document.querySelector(playerQuery);
+        if (!playerEl.src.includes('enablejsapi')) {
+            playerEl.src = playerEl.src + '?enablejsapi=1';
+        }
         asyncLoadScript(bootstrapUrl, function () {
             Annoto.boot(annotoConfig);
         });
