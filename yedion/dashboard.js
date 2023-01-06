@@ -6,6 +6,11 @@
         var dashboardUrl = 'https://dashboard.annoto.net'; // 'http://localhost:3333';
 
         var dashboardContainer = $('.table-responsive div.col-md-10').not('.table-responsive .course_block div.col-md-10');
+
+        $('.table-responsive').css({
+            overflow: 'initial',
+        });
+
         var iframe = document.createElement('iframe');
         dashboardContainer.prepend(iframe);
 
@@ -55,8 +60,9 @@
 
                 if (!iframeDoc.querySelector('nnd-course-root')) {
                     var courseRootEl = iframeDoc.createElement(`nnd-course-root`);
+                    iframeDoc.dir = document.dir;
                     courseRootEl.style.display = 'none';
-                    courseRootEl.responsive = false;
+                    courseRootEl.responsive = true;
                     courseRootEl.historyType = 'compose';
                     courseRootEl.composeHistory = true;
                     courseRootEl.clientId = parent.AnnotoData.clientId;
@@ -69,6 +75,7 @@
                         href: parent.window.location.href,
                         host: parent.window.location.host,
                     };
+                    courseRootEl.defaultView = parent.window;
                     courseRootEl.addEventListener('nndReady', function () {
                         console.log('Annoto Yedion: dashboard ready');
                         courseRootEl.authenticateSSO(parent.AnnotoData.userToken);
@@ -76,9 +83,17 @@
                     iframeDoc.body.appendChild(courseRootEl);
                 }
 
-                $('nnd-course-root').css({
-                    display: 'block'
-                });
+                var courseRoot = iframeDoc.querySelector('nnd-course-root');
+
+                if (courseRoot) {
+                    courseRoot.style.display = 'block';
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.boxSizing = 'border-box';
+                    iframe.style.margin = '0';
+                    iframe.style.padding = '0';
+                }
+
                 $(navEl).css({
                     'background-color': 'lightcyan',
                 });
