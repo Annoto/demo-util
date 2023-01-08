@@ -17,6 +17,7 @@
         iframeEl.style.padding = '0';
         iframeEl.style.border = '0';
         iframeEl.style.outline = '0';
+        iframeEl.style.minHeight = '1024px';
         dashboardContainer.prepend(iframeEl);
 
         var iframeDoc = iframeEl.contentWindow.document;
@@ -73,7 +74,7 @@
                     
                     courseRootEl.responsive = false;
                     courseRootEl.historyType = 'compose';
-                    courseRootEl.composeHistory = true;
+                    courseRootEl.composeHistory = false;
                     courseRootEl.clientId = AnnotoData.clientId;
                     courseRootEl.courseDetails = {
                         id: AnnotoData.group.id,
