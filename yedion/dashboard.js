@@ -75,6 +75,7 @@
                     courseRootEl.responsive = false;
                     courseRootEl.historyType = 'compose';
                     courseRootEl.composeHistory = false;
+                    courseRootEl.composeQueryParam = false;
                     courseRootEl.clientId = AnnotoData.clientId;
                     courseRootEl.courseDetails = {
                         id: AnnotoData.group.id,
