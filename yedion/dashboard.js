@@ -5,21 +5,32 @@
 
         var dashboardUrl = 'https://dashboard.annoto.net'; // 'http://localhost:3333';
 
-        var s1 = document.createElement('script');
+        var dashboardContainer = $('.table-responsive div.col-md-10').not('.table-responsive .course_block div.col-md-10');
+
+        $('.table-responsive').css({
+            overflow: 'initial',
+        });
+
+        var iframe = document.createElement('iframe');
+        dashboardContainer.prepend(iframe);
+
+        var iframeDoc = iframe.contentWindow.document;
+
+        var s1 = iframeDoc.createElement('script');
         s1.src = `${dashboardUrl}/build/annotodashboard.esm.js`;
         s1.type = 'module';
-        document.getElementsByTagName('head')[0].appendChild(s1);
+        iframeDoc.getElementsByTagName('head')[0].appendChild(s1);
 
-        var s2 = document.createElement('script');
+        var s2 = iframeDoc.createElement('script');
         s2.noModule = true;
         s2.src = `${dashboardUrl}/build/annotodashboard.js`;
         s2.type = 'text/javascript';
-        document.getElementsByTagName('head')[0].appendChild(s2);
+        iframeDoc.getElementsByTagName('head')[0].appendChild(s2);
 
-        var l1 = document.createElement('link');
+        var l1 = iframeDoc.createElement('link');
         l1.rel = 'stylesheet';
         l1.href = `${dashboardUrl}/build/annotodashboard.css`;
-        document.getElementsByTagName('head')[0].appendChild(l1);
+        iframeDoc.getElementsByTagName('head')[0].appendChild(l1);
 
         var sidebarNav2 = document.getElementById('sidebar-nav-2');
         if (sidebarNav2) {
@@ -47,30 +58,42 @@
                     display: 'none',
                 });
 
-                if (!$('nnd-course-root').get(0)) {
-                    var courseRootEl = document.createElement(`nnd-course-root`);
+                if (!iframeDoc.querySelector('nnd-course-root')) {
+                    var courseRootEl = iframeDoc.createElement(`nnd-course-root`);
+                    iframeDoc.dir = document.dir;
                     courseRootEl.style.display = 'none';
-                    courseRootEl.responsive = false;
+                    courseRootEl.responsive = true;
                     courseRootEl.historyType = 'compose';
                     courseRootEl.composeHistory = true;
-                    courseRootEl.clientId = AnnotoData.clientId;
+                    courseRootEl.clientId = parent.AnnotoData.clientId;
                     courseRootEl.courseDetails = {
-                        id: AnnotoData.group.id,
-                        title: AnnotoData.group.title,
+                        id: parent.AnnotoData.group.id,
+                        title: parent.AnnotoData.group.title,
                         privateThread: true,
                     };
+                    courseRootEl.authOrigin = {
+                        href: parent.window.location.href,
+                        host: parent.window.location.host,
+                    };
+                    courseRootEl.defaultView = parent.window;
                     courseRootEl.addEventListener('nndReady', function () {
                         console.log('Annoto Yedion: dashboard ready');
-                        courseRootEl.authenticateSSO(AnnotoData.userToken);
+                        courseRootEl.authenticateSSO(parent.AnnotoData.userToken);
                     });
-
-                    var dashboardContainer = $('.table-responsive div.col-md-10').not('.table-responsive .course_block div.col-md-10');
-                    dashboardContainer.prepend(courseRootEl);
+                    iframeDoc.body.appendChild(courseRootEl);
                 }
 
-                $('nnd-course-root').css({
-                    display: 'block'
-                });
+                var courseRoot = iframeDoc.querySelector('nnd-course-root');
+
+                if (courseRoot) {
+                    courseRoot.style.display = 'block';
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.boxSizing = 'border-box';
+                    iframe.style.margin = '0';
+                    iframe.style.padding = '0';
+                }
+
                 $(navEl).css({
                     'background-color': 'lightcyan',
                 });
