@@ -21,7 +21,7 @@
         dashboardContainer.prepend(iframeEl);
 
         var iframeDoc = iframeEl.contentWindow.document;
-        iframeDoc.dir = document.dir;
+        iframeDoc.dir = 'ltr'; // document.dir;
         iframeDoc.body.style.boxSizing = 'border-box';
         iframeDoc.body.style.margin = '0';
         iframeDoc.body.style.padding = '0';
