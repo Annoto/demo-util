@@ -37,9 +37,26 @@
         if (!playerEl.src.includes('enablejsapi')) {
             playerEl.src = playerEl.src + '?enablejsapi=1';
         }
-        asyncLoadScript(bootstrapUrl, function () {
-            Annoto.boot(annotoConfig);
-        });
+        fetch('https://matrixsb.csod.com/outboundsso.aspx?ou_id=-24350', {
+            method: 'GET',
+            headers:{
+                'Content-Type': 'text/html; charset=utf-8',
+            },
+            mode: 'no-cors',
+        }).then(function (response) {
+            return response.text();
+        }).then(function (data) {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(data, "text/html")
+            var SAMLResponse = doc.querySelector('input[name="SAMLResponse"]').value;
+
+            asyncLoadScript(bootstrapUrl, function () {
+                Annoto.on('ready', function (api) {
+                    api.samlAuth(SAMLResponse);
+                });
+                Annoto.boot(annotoConfig);
+            });
+        })
     };
 
     if (['interactive', 'complete'].indexOf(document.readyState) !== -1) {
