@@ -1,10 +1,7 @@
 (function (window) {
-    var scriptSrc = document.currentScript.src;
     var bootstrapUrl = 'https://cdn.annoto.net/widget/latest/bootstrap.js';
-    var clientId = 'eyJhbGciOiJIUzI1NiJ9.MWY2YTMxYjMtZGM5ZC00YTcxLTgyMTUtZDliNTBiN2FlODBm.a_XO_gNYScfl0qmvDAtiZ8XKPUArcGmf7gFQ0whM1ag';
     var playerQuery = '#YouTubePlayer';
     var annotoConfig = {
-        clientId: clientId,
         /* hooks: {
             ssoAuthRequestHandle: ssoAuthRequestHandle,
             mediaDetails: function (detailsParams) {
@@ -23,6 +20,13 @@
         }],
     };
 
+    var scriptSrc = document.currentScript.src;
+    var paramArr = scriptSrc.slice(scriptSrc.indexOf('?') + 1).split('&');
+    var queryParams = {};
+    paramArr.forEach(param => {
+        var [key, val] = param.split('=');
+        queryParams[key] = decodeURIComponent(val);
+    })
 
     function asyncLoadScript(src, onLoadCb) {
         var t = document.createElement('script');
@@ -32,30 +36,24 @@
         ft ? ft.parentNode.insertBefore(t, ft) : document.body.appendChild(t);
     }
 
-    function getQueryParams(url) {
-        var paramArr = url.slice(url.indexOf('?') + 1).split('&');
-        var params = {};
-        paramArr.map(param => {
-            var [key, val] = param.split('=');
-            params[key] = decodeURIComponent(val);
-        })
-        return params;
-    }
-
-    function getOutboundUrl() {
-        var outboundUrl = getQueryParams(scriptSrc).outbound_url;
-        if (!outboundUrl) {
-            throw new Error('outboundUrl is not defined');
-        }
-        return outboundUrl;
-    }
-
     var onWindowLoad = function () {
         var playerEl = document.querySelector(playerQuery);
         if (!playerEl.src.includes('enablejsapi')) {
             playerEl.src = playerEl.src + '?enablejsapi=1';
         }
-        fetch(getOutboundUrl(), {
+
+        var ssoUrl = queryParams.sso_url;
+        var clientId = queryParams.client_id;
+        var region = queryParams.region;
+
+        if (!ssoUrl || !clientId || !region) {
+            throw new Error('sso_url, client_id and region must be defined in the url');
+        }
+        annotoConfig.clientId = clientId;
+        annotoConfig.backend = {
+            domain: `${region}.annoto.net`,
+        }
+        fetch(ssoUrl, {
             method: 'GET',
         }).then(function (response) {
             return response.text();
