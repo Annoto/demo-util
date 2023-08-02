@@ -1,19 +1,6 @@
 (function (window) {
     var scriptSrc = document.currentScript.src;
     var bootstrapUrl = 'https://cdn.annoto.net/widget/latest/bootstrap.js';
-    var annotoConfig = {
-        /* hooks: {
-            ssoAuthRequestHandle: ssoAuthRequestHandle,
-            mediaDetails: function (detailsParams) {
-                var retVal = detailsParams.details || {};
-                if (!retVal.title) {
-                    retVal.title = document.title || 'UNKNOWN';
-                }
-                return retVal;
-            },
-        }, */
-        widgets: [],
-    };
 
     var paramArr = scriptSrc.slice(scriptSrc.indexOf('?') + 1).split('&');
     var queryParams = {};
@@ -35,10 +22,34 @@
     if (!ssoUrl || !clientId || !region) {
         throw new Error('Annoto: sso_url, client_id and region must be defined in the url');
     }
-    annotoConfig.clientId = clientId;
-    annotoConfig.backend = {
-        domain: `${region}.annoto.net`,
+
+    var getWidgetConfig = function (player) {
+        return {
+            clientId: clientId,
+            backend: {
+                domain: region + '.annoto.net',
+            },
+            /* hooks: {
+                ssoAuthRequestHandle: ssoAuthRequestHandle,
+                mediaDetails: function (detailsParams) {
+                    var retVal = detailsParams.details || {};
+                    if (!retVal.title) {
+                        retVal.title = document.title || 'UNKNOWN';
+                    }
+                    return retVal;
+                },
+            }, */
+            widgets: [
+                {
+                    timeline: {
+                        overlay: true,
+                    },
+                    player: player,
+                },
+            ],
+        };
     };
+
 
     var booted = false;
     var annotoApi;
@@ -49,17 +60,7 @@
         if (launchedPlayers.indexOf(player.playerId) !== -1) {
             return;
         }
-        var widgetConfig = {
-            clientId,
-            widgets: [
-                {
-                    timeline: {
-                        overlay: true,
-                    },
-                    player: player,
-                },
-            ],
-        };
+        var widgetConfig = getWidgetConfig(player);
         launchedPlayers.push(player.playerId);
         if (!booted) {
             fetch(ssoUrl, {
