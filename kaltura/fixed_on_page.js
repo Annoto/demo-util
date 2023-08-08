@@ -101,6 +101,7 @@
                     },
                     ux: {
                         layout: 'fixed',
+                        maxWidth: 360,
                     },
                 },
             ],
